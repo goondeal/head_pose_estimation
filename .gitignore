@@ -1,0 +1,7 @@
+AFLW2000-3D/
+archive/
+*.zip
+*.bz2
+data
+*.csv
+dlib-19.9/
