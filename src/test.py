@@ -272,8 +272,9 @@ while cap.isOpened():
         # cv2.putText(image, f'FPS: {int(fps)}', (20, 450),
         #             cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 255, 0), 2)
 
-        for p in landmarks_extracted: #There are 68 landmark points on each face
-            cv2.circle(image, p, 1, (0,0,255), thickness=2) #For each point, draw a red circle with thickness2 on the original frame
+        # for p in landmarks_extracted: #There are 68 landmark points on each face
+        p = landmarks_extracted[30]
+        cv2.circle(image, p, 1, (0,0,0), thickness=2) #For each point, draw a red circle with thickness2 on the original frame
         # mp_drawing.draw_landmarks(
         #     image=image,
         #     # landmark_list=face_landmarks,
