@@ -5,3 +5,4 @@ archive/
 data
 *.csv
 dlib-19.9/
+__pycache__/

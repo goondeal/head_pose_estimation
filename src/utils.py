@@ -4,15 +4,50 @@ import cv2
 import numpy as np
 import scipy.io as sio
 import cv2
-from math import pi
+from math import cos, sin, pi
 import dlib
 from glob import glob
 from pathlib import Path
 import pandas as pd
+from sklearn.model_selection import train_test_split
+
+
+def split_x_y(data):
+    return data[:, :-3], data[:, -3:]
+
+def split_train_dev_x_y(df, train_size=0.9):
+    data_train, data_test = train_test_split(df, train_size=train_size)
+    X_train, Y_train = split_x_y(data_train.values)
+    X_dev, Y_dev = split_x_y(data_test.values)
+    return X_train, Y_train, X_dev, Y_dev 
+
+def draw_axis(img, yaw, pitch, roll, origin, size = 100):
+
+    tdx = origin[0]
+    tdy = origin[1]
+
+    # X-Axis pointing to right. drawn in red
+    x1 = size * (cos(yaw) * cos(roll)) + tdx
+    y1 = size * (cos(pitch) * sin(roll) + cos(roll) * sin(pitch) * sin(yaw)) + tdy
+
+    # Y-Axis | drawn in green
+    #        v
+    x2 = size * (-cos(yaw) * sin(roll)) + tdx
+    y2 = size * (cos(pitch) * cos(roll) - sin(pitch) * sin(yaw) * sin(roll)) + tdy
+
+    # Z-Axis (out of the screen) drawn in blue
+    x3 = size * (sin(yaw)) + tdx
+    y3 = size * (-cos(yaw) * sin(pitch)) + tdy
+
+    cv2.line(img, (int(tdx), int(tdy)), (int(x1),int(y1)),(0,0,255),3)
+    cv2.line(img, (int(tdx), int(tdy)), (int(x2),int(y2)),(0,255,0),3)
+    cv2.line(img, (int(tdx), int(tdy)), (int(x3),int(y3)),(255,0,0),2)
+
+    return img
 
 
 class DataCleaner:
-    def __init__(self, path, points_pick='68pts'):
+    def __init__(self, path='', points_pick='68pts'):
         self.data_dir = Path(path)
         self.points_pick = points_pick
         self.detector = dlib.get_frontal_face_detector()
@@ -60,7 +95,6 @@ class DataCleaner:
         # print('d =', d)
         marks = marks / d
         # print('marks after scaling =', marks)
-        
 
         # Decide the points selection method.
         if self.points_pick == '68pts':
@@ -134,16 +168,24 @@ class DataCleaner:
         i = 1
         for img in all_imgs: # [str(self.data_dir / 'image01152.mat')]:
             img_name = Path(img).stem
-            print('i =', i, 'img =', img_name)
-            i += 1
-            
-            mat = sio.loadmat(img)
-            indices.append(img_name)
-            features = self._get_features(mat.get('pt3d_68')[:2].T)
-            
+            tmp = str(self.data_dir / f'{img_name}.jpg')
+            image = cv2.imread(tmp, cv2.IMREAD_COLOR)
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            # detect faces in the grayscale image
+            rects = self.detector(gray, 1)
+            # loop over the face detections
+            if rects and len(rects) == 1:
+                
+                print('i =', i, 'img =', img_name)
+                i += 1
+                
+                mat = sio.loadmat(img)
+                indices.append(img_name)
+                features = self._get_features(mat.get('pt3d_68')[:2].T)
+                
 
-            labels = self._get_labels(mat)
-            data.append((features, labels))
+                labels = self._get_labels(mat)
+                data.append((features, labels))
 
         data = np.squeeze([np.concatenate((arr[0], arr[1]), axis=1)
                           for arr in data])
@@ -169,9 +211,9 @@ if __name__ == '__main__':
         '/home/ahmad/projects/python/head_pose_estimation/AFLW2000-3D/AFLW2000')
     
     # Get and save a dataframe (6 points as features).
-    cleaner.points_pick = '6pts'
-    df = cleaner.get_cleaned_df()
-    df.to_csv('cleaned_data_6pts.csv')
+    # cleaner.points_pick = '6pts'
+    # df = cleaner.get_cleaned_df()
+    # df.to_csv('cleaned_data_6pts.csv')
 
     # Get and save a dataframe (21 points as features).
     cleaner.points_pick = '21pts'
