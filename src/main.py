@@ -1,16 +1,16 @@
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
+from sklearn.svm import SVR
 from sklearn.metrics import r2_score
 from utils import DataCleaner
 
 
 class HeadPoseEstimator:
     def __init__(self):
-        self.pitch_model = LinearRegression()
-        self.yaw_model = LinearRegression()
-        self.roll_model = LinearRegression()
+        self.pitch_model = SVR(C=100)
+        self.yaw_model = SVR(C=100)
+        self.roll_model = SVR(C=100)
 
     def fit(self, x, y):
         self.pitch_model = self.pitch_model.fit(x, y[:, 0])
@@ -33,7 +33,7 @@ class HeadPoseEstimator:
 
 if __name__ == '__main__':
     np.random.seed(42)
-    df_path = 'cleaned_data_6pts.csv'
+    df_path = 'cleaned_data_mp.csv'
     # df_path = 'cleaned_data_21pts.csv'
 
     try:
