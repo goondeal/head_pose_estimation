@@ -2,15 +2,19 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVR
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import r2_score
 from utils import DataCleaner
 
 
 class HeadPoseEstimator:
     def __init__(self):
-        self.pitch_model = SVR(C=100)
-        self.yaw_model = SVR(C=100)
-        self.roll_model = SVR(C=100)
+        self.pitch_model = RandomForestRegressor(n_estimators=100, max_depth=8, min_samples_leaf=3)
+        self.yaw_model = RandomForestRegressor(n_estimators=100, max_depth=8, min_samples_leaf=3)
+        self.roll_model = RandomForestRegressor(n_estimators=100, max_depth=8, min_samples_leaf=3)
+        # self.pitch_model = SVR(C=10)
+        # self.yaw_model = SVR(C=500)
+        # self.roll_model = SVR(C=10)
 
     def fit(self, x, y):
         self.pitch_model = self.pitch_model.fit(x, y[:, 0])
